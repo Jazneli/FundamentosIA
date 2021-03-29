@@ -1,2 +1,3 @@
-# Lisp
-Paquetes LISP,  Fundamentos de Inteligencia Artificial
+# Fundamentos IA
+Fundamentos de Inteligencia Artificial
+1.Paquetes LISP
