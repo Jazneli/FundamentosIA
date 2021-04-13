@@ -191,3 +191,31 @@
         )
       )
 )
+
+;;;*******************************************************************************************************************************
+;; EXPAND (estado)
+;;        Construye y regresa una lista con todos los descendientes validos de [estado]
+;;;*******************************************************************************************************************************
+(defun expand (estado)
+  "Obtiene todos los descendientes válidos de un estado, aplicando todos los operadores en *ops* en ese mismo orden"
+  (let* ((descendientes nil)
+          (nuevo-descendiente nil)
+    )
+    (dolist (op *ops* descendientes)
+      (print (second op))
+      (setq nuevo-estado (apply-operator op estado))
+      (print nuevo-estado)
+      (when (and (valid-operator? op estado)
+                  (valid-state? nuevo-estado)
+            )
+            (print (valid-operator? op estado))
+            (print (valid-sate? nuevo-estado))
+            (setq descendientes (cons (list nuevo-estado op) descendientes))
+      )
+    )
+  )
+)
+
+;;;*******************************************************************************************************************************
+;; 
+;;;*******************************************************************************************************************************
