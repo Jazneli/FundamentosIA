@@ -31,7 +31,9 @@
 (defparameter *ops* '( (:Pasa-Lobo     (1 0 0))
                        (:Pasa-Oveja    (0 1 0))
                        (:Pasa-Legumbre (0 0 1))
-                       (:Pasa-Granjero  (0 0 0))))
+                       (:Pasa-Granjero (0 0 0))
+                      )
+)
 
 ;; Identificador del último nodo creado
 (defparameter *id* -1)
@@ -41,7 +43,6 @@
 
 ;; Lista donde se almacenará la solución recuperada de la memoria
 (defparameter *solucion* nil)
-
 
 ;;;*******************************************************************************************************************************
 ;; Create-node (estado op)
@@ -53,7 +54,8 @@
     ;;Incremento para que lo primero es procesarse sea la respuesta
     (incf *id*)
     ;;Los nodos procesados son descendientes de *current-ancestor*
-    (list *id* estado *current-ancestor* (first op)))
+    (list *id* estado *current-ancestor* (first op))
+)
 
 ;;;*******************************************************************************************************************************
 ;; INSERT-TO-OPEN   y   GET-FROM-OPEN  
@@ -69,11 +71,14 @@
 	                  (push  nodo  *open*))
 	           ((eql  metodo  :breath-first)
 		          (setq  *open*  (append  *open*  (list nodo))))
-	   	   (T  Nil)))  )
+	   	   (T  Nil))
+     )  
+)
 
 (defun get-from-open ()
 "Recupera el siguiente elemento a revisar de  frontera de busqueda *open*"
-      (pop  *open*))
+      (pop  *open*)
+)
 
 ;;;*******************************************************************************************************************************
 ;; BARGE-SHORE (estado)
@@ -85,7 +90,8 @@
 "Regresa la orilla del río en la que se encuentra la barca en el estado recibido como parámetro:  
   0 - origen  1 - destino"
     ;;El granjero es el indicador de la posición de la barca, debido a que el es el remador.
-     (if  (= 1 (third (first  estado)))  0  1)) 
+     (if  (= 1 (third (first  estado)))  0  1)
+) 
 
 ;;;*******************************************************************************************************************************
 ;;VALID-OPERATOR [op, estado]
@@ -103,7 +109,10 @@
   ;;Verificar si es posible realizar el movimiento
     (and  (>=  lobo  (first (second op)))        
           (>=  oveja   (second (second op))))
-          (>= legumbre (third(second op)))))  
+          (>= legumbre (third(second op)))
+    )
+  )
+)  
 
 ;;;*******************************************************************************************************************************
 ;; VALID-STATE (estado)
@@ -131,7 +140,54 @@
 
 (defun apply-operator (op estado)
     "Obtiene el descendiente de [estado] al aplicarle [op] SIN VALIDACIONES"
-      (let * ((orilla1 (first estado))
+              ;;Asignación de los datos a los elementos
+     (let * ((orilla1 (first estado))
+              (orilla2 (second estado))
+              (lobo0 (first orilla1))
+              (oveja0 (second orilla1))
+              (legumbre0 (third orilla1))
+              (granjero0 (fourth orilla1))
+              (lobo1 (first orilla2))
+              (oveja1 (second orilla2))
+              (legumbre1 (third orilla2))
+              (granjero1 (fourth orilla2))
+              (orilla-barca (barge-shore estado))
+              ;;Etiqueta humana del operador
+              (operador (first op)))
+        (case operador
+           ;;Operador a aplicar (1 0 0)
+          (:Pasa-Lobo 
+            ;;Restar elementos de la orilla con la barca y sumarlos a la otra orilla
+            (if (= orilla-barca 0)
+              (list (list (- lobo0 1) oveja0 legumbre0 (flip granjero0)) (list (+ lobo1 1) oveja1 legumbre1 (flip granjero1)))
+              (list (list (+ lobo0 1) oveja0 legumbre0 (flip granjero0)) (list (- lobo1 1) oveja1 legumbre1 (flip granjero1)))
+            )
+          )
+          ;;Operador a aplicar (0 1 0)
+          (:Pasa-Oveja
+            ;;Restar elementos de la orilla con la barca y sumarlos a la otra orilla
+            (if (= orilla-barca 0)
+            (list (list lobo0 (- oveja0 1) legumbre0 (flip granjero0)) (list lobo1 (+ oveja1 1) legumbre1 (flip granjero1)))
+            (list (list lobo0 (+ oveja0 1) legumbre0 (flip granjero0)) (list lobo1 (- oveja1 1) legumbre1 (flip granjero1)))
+            )
+          )
+          ;;Operador a aplicar (0 0 1)
+          (:Pasa-Legumbre
+            ;;Restar elementos de la orilla con la barca y sumarlos a la otra orilla
+            (if (= orilla-barca 0)
+              (list (list lobo0 oveja0 (- legumbre0 1) (flip granjero0)) (list lobo1 oveja1  (+ legumbre1 1) (flip granjero1)))
+              (list (list lobo0 oveja0 (+ legumbre0 1) (flip granjero0)) (list lobo1 oveja1  (- legumbre1 1) (flip granjero1)))
+            )
+          )
+          ;;Operador a aplicar (0 0 0)
+          (:Pasa-Granjero
+            ;;Restar elementos de la orilla con la barca y sumarlos a la otra orilla
+            (if (= orilla-barca 0)
+              (list (list lobo oveja0 legumbre0 (flip granjero0)) list(lobo1 oveja1 legumbre1 (flip granjero1)))
+              (list (list lobo oveja0 legumbre0 (flip granjero0)) list(lobo1 oveja1 legumbre1 (flip granjero1)))
+            )
+          )
+          (T "error")
         )
       )
 )
