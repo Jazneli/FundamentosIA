@@ -198,18 +198,20 @@
 ;;;*******************************************************************************************************************************
 (defun expand (estado)
   "Obtiene todos los descendientes válidos de un estado, aplicando todos los operadores en *ops* en ese mismo orden"
-  (let* ((descendientes nil)
-          (nuevo-descendiente nil)
+  (let ((descendientes nil)
+          (nuevo-estado nil)
     )
     (dolist (op *ops* descendientes)
-      (print (second op))
+     ; (print (second op))
+      ;; primero se aplica el operador  y  después
       (setq nuevo-estado (apply-operator op estado))
-      (print nuevo-estado)
+     ; (print nuevo-estado)
+      ; se valida el resultado
       (when (and (valid-operator? op estado)
                   (valid-state? nuevo-estado)
             )
-            (print (valid-operator? op estado))
-            (print (valid-sate? nuevo-estado))
+           ; (print (valid-operator? op estado))
+           ; (print (valid-sate? nuevo-estado))
             (setq descendientes (cons (list nuevo-estado op) descendientes))
       )
     )
@@ -217,5 +219,30 @@
 )
 
 ;;;*******************************************************************************************************************************
-;; 
+;;  REMEMBER-STATE?  y  FILTER-MEMORIES
+;;        Permiten administrar la memoria de intentos previos
 ;;;*******************************************************************************************************************************
+(defun remember-state? (estado lista-memoria)
+  "Busca un estado en una lista de nodos que sirve como memoria de intentos previos
+     el estado tiene estructura: [(<Lobo0><Oveja0><Legumbre0>) (<Lobo1><Oveja1><Legumbre1>)]
+     el nodo tiene estructura : [<id> <estado> <id-ancestro> <operador>]"
+  (cond ((null lista-memoria) nil)
+      ;;el estado es igual al que se encuentra en el nodo?
+      ((equal estado (second (first lista-memoria))) T)
+      (T (remember-state? estado (rest lista-memoria)))
+  )
+)
+
+(defun  filter-memories (lista-estados-y-ops) 
+"Filtra una lista de estados-y-operadores quitando aquellos elementos cuyo estado está en la memoria *memory*
+     la lista de estados y operadores tiene estructura: [(<estado> <op>) (<estado> <op>) ... ]"
+     (cond ((null  lista-estados-y-ops)  Nil)
+          ; Si se recuerda el primer elemento de la lista, filtrarlo.
+	       ((remember-state? (first (first  lista-estados-y-ops)) *memory*)  
+		       (filter-memories  (rest  lista-estados-y-ops)))
+      (T  (cons  (first lista-estados-y-ops) 
+      ; De lo contrario, incluirlo en la respuesta
+      (filter-memories  (rest  lista-estados-y-ops))))
+    ) 
+)  
+
