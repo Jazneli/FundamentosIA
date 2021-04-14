@@ -166,7 +166,7 @@
             ;;Restar elementos de la orilla con la barca y sumarlos a la otra orilla
            (if (= orilla_barca 0)
 	            (list (list lobo0 oveja0 0 (flip granjero0)) (list lobo1 oveja1 1 (flip granjero1)))
-	            (list (list lobo0 oveja0 0 (flip granjero0)) (list lobo1 oveja1 1 (flip granjero1)))))
+	            (list (list lobo0 oveja0 1 (flip granjero0)) (list lobo1 oveja1 0 (flip granjero1)))))
           ;;Operador a aplicar (0 0 0)
           (:Pasa-Granjero
             (list (list lobo0 oveja0 legumbre0 (flip granjero0)) (list lobo1 oveja1 legumbre1 (flip granjero1)))))))
