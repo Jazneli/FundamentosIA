@@ -246,3 +246,90 @@
     ) 
 )  
 
+;;;*******************************************************************************************************************************
+;;  EXTRACT-SOLUTION  y  DISPLAY-SOLUTION
+;;       Recuperan y despliegan la secuencia de solucion del problema.
+;;       Extract-solution: Recibe un nodo (el que contiene al estado meta) que ya se encuentra en la memoria y
+;;                                    rastrea todos sus ancestros hasta llegar  al  nodo que contiene al estado inicial.
+;;       Display-solution: Despliega en pantalla la lista global *solucion* donde ya se encuentra, en orden correcto,
+;;                                    el proceso de solución del problema
+;;;*******************************************************************************************************************************
+(defun extract-solution (nodo)
+"Rastrea en *memory* todos los descendientes de [nodo] hasta llegar al estado inicial"
+      ;Busca un nodo por su id, si lo encuentra regresa el nodo completo
+     (labels ((locate-node  (id  lista)     
+		  (cond ((null  lista)  Nil)
+		        ((eql  id  (first (first  lista))) (first  lista))
+		        (T  (locate-node  id (rest  lista))))))
+	  (let ((current  (locate-node  (first  nodo)  *memory*)))
+	     (loop  while  (not (null  current))  do             
+      ;Agregar a la solución el nodo actual           
+		 (push  current  *solucion*)  
+     ; Y luego regresa a su antecesor
+		 (setq  current  (locate-node  (third  current) *memory*)))) 
+	     *solucion*);) Revisar este parentesis
+
+(defun discplay-solution (lista-nodos)
+  "Despliega la solución en forma conveniente y numerando los pasos"
+    (format t "Solución con ~A pasos:~%~%" (1- (length lista-nodos)))
+    (let ((nodo nil)
+      (dotimes (i (length lista-nodos))
+        (setq nodo (nth i lista-nodos))
+        (if (= i 0)
+            ;A partir de este estado inicial
+          (format t "Inicio en: ~A~%"(second nodo))
+          ;else
+            ;Imprimir el número de paso, operador y estado
+          (format t "\(~2A\) aplicado ~20A se llega a ~A~%" i (fourth nodo) (second nodo))
+        )
+      )
+    )
+)
+
+;;;*******************************************************************************************************************************
+;; RESET-ALL  y  BLIND-SEARCH
+;;
+;;       Recuperan y despliegan la secuencia de solucion del problema...
+;;
+;;       reset-all   Reinicializa todas las variables globales para una nueva ejecución
+;;       blind-search  Función principal, realiza búsqueda desde un estado inicial a un estado meta
+;;;*******************************************************************************************************************************
+(defun reset-all () 
+"Reinicia todas las variables globales para realizar una nueva búsqueda..."
+     (setq  *open*  nil)
+     (setq  *memory*  nil)
+     (setq  *id*  0)
+     (setq  *current-ancestor*  nil)
+     (setq  *solucion*  nil))
+
+(defun blind-search (edo-inicial edo-meta metodo)
+    "Realiza una búsqueda ciega, por el método especificado y desde un estado inicial hasta un estado meta
+    los métodos posibles son:  :depth-first - búsqueda en profundidad
+                              :breath-first - búsqueda en anchura"
+    (reset-all)
+    (let ((nodo nil)
+          (estado nil)
+          (sucesores '())
+          (operador nil)
+          (meta-encontrada nil)
+      )
+      (insert-to-open edo-inicial nil metodo)
+      (loop until (or meta-encontrada (null *open)) do
+        (setq nodo     (get-from-open)
+              estado   (second nodo)
+              operador (third nodo))
+        (push nodo *memory*)
+        (cond ((equal edo-meta estado)
+          (format t "Exito. Meta encontrada en ~A intentos ~%" (first nodo))
+          (setq meta-encontrada T)
+          (setq *current-ancestor* (first nodo))
+          (setq sucesores (expand estado))
+          (setq sucesores (filter-memories sucesores))
+          (loop form element in sucesores do
+            (insert-to-open (first el (second element) metodo))
+          )
+        )
+      )
+    )
+  )
+)
