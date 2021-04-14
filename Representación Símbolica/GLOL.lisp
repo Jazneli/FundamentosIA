@@ -1,4 +1,4 @@
-;;;*******************************************************************************************************************************
+;;;**********************************************************************************************************************
 ;;;  GLOL.lisp
 ;;;     Resuelve el problema de Granjero, Lobo, Oveja y Legumbre con búsqueda ciega, a lo profundo y a lo ancho.
 ;;;
@@ -19,7 +19,7 @@
 ;;;       ni la oveja con las legumbres.
 ;;;
 ;;; Tolentino Pérez Jazmin Yaneli, Abril 2021.
-;;;*******************************************************************************************************************************
+;;;************************************************************************************************************************
 
 ;; Frontera de búsqueda
 (defparameter *open* '())
@@ -44,11 +44,12 @@
 ;; Lista donde se almacenará la solución recuperada de la memoria
 (defparameter *solucion* nil)
 
-;;;*******************************************************************************************************************************
+;;;************************************************************************************************************************
+
 ;; Create-node (estado op)
 ;;      estado: Un estado del problema a resolver
 ;;    operador: El operador cuta aplicación genero el estado
-;;;*******************************************************************************************************************************
+;;;************************************************************************************************************************
 (defun Create-node (estado op)
     "Construye y regresa un nuevo nodo de búsqueda que contiene al estado y operador recibidos como parámetro"
     ;;Incremento para que lo primero es procesarse sea la respuesta
@@ -57,13 +58,13 @@
     (list *id* estado *current-ancestor* (first op))
 )
 
-;;;*******************************************************************************************************************************
+;;;************************************************************************************************************************
 ;; INSERT-TO-OPEN   y   GET-FROM-OPEN  
 ;;        Insert-to-open  recibe una lista y una llave que identifica el metodo a usar para insertar:
 ;;             :depth-first     Inserta los elementos de la lista en orden inverso y por el inicio de la lista
 ;;             :breath-first    Inserta los elementos de la lista en orden normal y por el final de la lista
 ;;        Get-from-open  siempre retira el primer elemento de la lista *open*
-;;;*******************************************************************************************************************************
+;;;************************************************************************************************************************
 (defun insert-to-open (estado  op  metodo) 
 "Permite insertar nodos de la frontera de busqueda *open* de forma apta para buscar a lo profundo y a lo ancho"
      (let ((nodo  (create-node  estado  op)))
@@ -80,12 +81,12 @@
       (pop  *open*)
 )
 
-;;;*******************************************************************************************************************************
+;;;************************************************************************************************************************
 ;; BARGE-SHORE (estado)
 ;;        Regresa la orilla del rio en la que se encuentra la barca en  [estado]
 ;;           0 - Orilla origen (primer sublista del estado)
 ;;           1 - Orilla destino (segunda sublista del estado)
-;;;*******************************************************************************************************************************
+;;;************************************************************************************************************************
 (defun  barge-shore (estado)
 "Regresa la orilla del río en la que se encuentra la barca en el estado recibido como parámetro:  
   0 - origen  1 - destino"
@@ -93,10 +94,10 @@
      (if  (= 1 (third (first  estado)))  0  1)
 ) 
 
-;;;*******************************************************************************************************************************
+;;;************************************************************************************************************************
 ;;VALID-OPERATOR [op, estado]
 ;;        Predicado.  Indica si es posible aplicar el operador [op] a [estado] segun los recursos (El grnajero indica la orilla en la que se encuentra la barca)
-;;;*******************************************************************************************************************************
+;;;************************************************************************************************************************
 (defun  valid-operator? (op  estado)
 "Predicado. Valida la aplicación de un operador a un estado...
      el estado tiene estructura:  [(<Lobo0><Oveja0><Legumbre0>) (<Lobo1><Oveja1><Legumbre1>)],
@@ -108,16 +109,16 @@
         (legumbre (third (nth orilla estado))))
   ;;Verificar si es posible realizar el movimiento
     (and  (>=  lobo  (first (second op)))        
-          (>=  oveja   (second (second op))))
-          (>= legumbre (third(second op)))
+          (>=  oveja   (second (second op)))
+          (>= legumbre (third(second op))))
   )
 )
 
-;;;*******************************************************************************************************************************
+;;;************************************************************************************************************************
 ;; VALID-STATE (estado)
 ;;        Predicado.  Indica si [estado]  es valido segun las restricciones del problema
 ;;        Es decir, no deben estar solos, en ninguna orilla, el lobo con la oveja, ni la oveja con las legumbres.
-;;;*******************************************************************************************************************************
+;;;************************************************************************************************************************
 (defun valid-state? (estado)
     "Predicado. Valida un estado según las restricciones generales del problema
     El estado tiene una estructura [(<Lobo0><Oveja0><Legumbre0>) (<Lobo1><Oveja1><Legumbre1>)]"
@@ -131,10 +132,10 @@
     )
 )
 
-;;;*******************************************************************************************************************************
+;;;************************************************************************************************************************
 ;; APPLY-OPERATOR (op, estado)
 ;;        Resuelve la tarea básica de cambiar de estado el sistema
-;;;*******************************************************************************************************************************
+;;;************************************************************************************************************************
 (defun flip (bit) (boole BOOLE-XOR bit 1))
 
 (defun apply-operator (op estado)
@@ -183,7 +184,7 @@
             ;;Restar elementos de la orilla con la barca y sumarlos a la otra orilla
             (if (= orilla-barca 0)
               (list (list lobo0 oveja0 legumbre0 (flip granjero0)) (list lobo1 oveja1 legumbre1 (flip granjero1)))
-              (list (list lobo0 oveja0 legumbre0 (flip granjero0)) (ist lobo1 oveja1 legumbre1 (flip granjero1)))
+              (list (list lobo0 oveja0 legumbre0 (flip granjero0)) (list lobo1 oveja1 legumbre1 (flip granjero1)))
             )
           )
           (T "error")
@@ -191,36 +192,36 @@
       )
 )
 
-;;;*******************************************************************************************************************************
+;;;************************************************************************************************************************
 ;; EXPAND (estado)
 ;;        Construye y regresa una lista con todos los descendientes validos de [estado]
-;;;*******************************************************************************************************************************
+;;;************************************************************************************************************************
 (defun expand (estado)
   "Obtiene todos los descendientes válidos de un estado, aplicando todos los operadores en *ops* en ese mismo orden"
   (let ((descendientes nil)
           (nuevo-estado nil)
     )
     (dolist (op *ops* descendientes)
-     ; (print (second op))
+      ;(print (second op))
       ;; primero se aplica el operador  y  después
       (setq nuevo-estado (apply-operator op estado))
-     ; (print nuevo-estado)
+      ;(print nuevo-estado)
       ; se valida el resultado
       (when (and (valid-operator? op estado)
                   (valid-state? nuevo-estado)
             )
-           ; (print (valid-operator? op estado))
-           ; (print (valid-sate? nuevo-estado))
+            ;(print (valid-operator? op estado))
+            ;(print (valid-state? nuevo-estado))
             (setq descendientes (cons (list nuevo-estado op) descendientes))
       )
     )
   )
 )
 
-;;;*******************************************************************************************************************************
+;;;************************************************************************************************************************
 ;;  REMEMBER-STATE?  y  FILTER-MEMORIES
 ;;        Permiten administrar la memoria de intentos previos
-;;;*******************************************************************************************************************************
+;;;************************************************************************************************************************
 (defun remember-state? (estado lista-memoria)
   "Busca un estado en una lista de nodos que sirve como memoria de intentos previos
      el estado tiene estructura: [(<Lobo0><Oveja0><Legumbre0>) (<Lobo1><Oveja1><Legumbre1>)]
@@ -245,14 +246,14 @@
     ) 
 )  
 
-;;;*******************************************************************************************************************************
+;;;************************************************************************************************************************
 ;;  EXTRACT-SOLUTION  y  DISPLAY-SOLUTION
 ;;       Recuperan y despliegan la secuencia de solucion del problema.
 ;;       Extract-solution: Recibe un nodo (el que contiene al estado meta) que ya se encuentra en la memoria y
 ;;                                    rastrea todos sus ancestros hasta llegar  al  nodo que contiene al estado inicial.
 ;;       Display-solution: Despliega en pantalla la lista global *solucion* donde ya se encuentra, en orden correcto,
 ;;                                    el proceso de solución del problema
-;;;*******************************************************************************************************************************
+;;;************************************************************************************************************************
 (defun extract-solution (nodo)
 "Rastrea en *memory* todos los descendientes de [nodo] hasta llegar al estado inicial"
       ;Busca un nodo por su id, si lo encuentra regresa el nodo completo
@@ -286,15 +287,14 @@
     )
 )
 
-
-;;;*******************************************************************************************************************************
+;;;************************************************************************************************************************
 ;; RESET-ALL  y  BLIND-SEARCH
 ;;
 ;;       Recuperan y despliegan la secuencia de solucion del problema...
 ;;
 ;;       reset-all   Reinicializa todas las variables globales para una nueva ejecución
 ;;       blind-search  Función principal, realiza búsqueda desde un estado inicial a un estado meta
-;;;*******************************************************************************************************************************
+;;;************************************************************************************************************************
 (defun reset-all () 
 "Reinicia todas las variables globales para realizar una nueva búsqueda..."
      (setq  *open*  nil)
@@ -322,14 +322,13 @@
         (push nodo *memory*)
         (cond ((equal edo-meta estado)
           (format t "Exito. Meta encontrada en ~A intentos ~%" (first nodo))
-          (setq meta-encontrada T)
-          (setq *current-ancestor* (first nodo))
+          (display-solution  (extract-solution  nodo))
+          (setq meta-encontrada T))
+          (t (setq *current-ancestor* (first nodo))
           (setq sucesores (expand estado))
           (setq sucesores (filter-memories sucesores))
           (loop for element in sucesores do
-            (insert-to-open (first element) (second element) metodo))
-          )
-        )
-      )
-   )
-)
+            (insert-to-open (first element) (second element) metodo)))))))
+
+(format t " Solución: ~S~%~% " (blind-search '((1 1 1 1) (0 0 0 0)) '((0 0 0 0) (1 1 1 1)) :depth-first))
+(format t "Solución: ~S~%~% " (blind-search '((1 1 1 1) (0 0 0 0)) '((0 0 0 0) (1 1 1 1)) :breath-first))
