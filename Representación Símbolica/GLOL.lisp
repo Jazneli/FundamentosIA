@@ -55,7 +55,7 @@
     ;;Incremento para que lo primero es procesarse sea la respuesta
     (incf *id*)
     ;;Los nodos procesados son descendientes de *current-ancestor*
-    (list *id* estado *current-ancestor* (first op))
+    (list *id* estado (first op) *current-ancestor* )
 )
 
 ;;;************************************************************************************************************************
@@ -71,10 +71,7 @@
          (cond ((eql  metodo  :depth-first)
 	                  (push  nodo  *open*))
 	           ((eql  metodo  :breath-first)
-		          (setq  *open*  (append  *open*  (list nodo))))
-	   	   (T  Nil))
-     )  
-)
+		          (setq  *open*  (append  *open*  (list nodo)))))))
 
 (defun get-from-open ()
 "Recupera el siguiente elemento a revisar de  frontera de busqueda *open*"
@@ -91,9 +88,11 @@
 "Regresa la orilla del río en la que se encuentra la barca en el estado recibido como parámetro:  
   0 - origen  1 - destino"
     ;;El granjero es el indicador de la posición de la barca, debido a que el es el remador.
-     (if  (= 1 (third (first  estado)))  0  1)
+    (if (= (fourth (first estado)) 1) 0 1)
 ) 
 
+(defun orilla-sin-granjero (estado)
+  (if (= (fourth (first estado)) 1) 1 0))
 ;;;************************************************************************************************************************
 ;;VALID-OPERATOR [op, estado]
 ;;        Predicado.  Indica si es posible aplicar el operador [op] a [estado] segun los recursos (El grnajero indica la orilla en la que se encuentra la barca)
@@ -110,9 +109,7 @@
   ;;Verificar si es posible realizar el movimiento
     (and  (>=  lobo  (first (second op)))        
           (>=  oveja   (second (second op)))
-          (>= legumbre (third(second op))))
-  )
-)
+          (>= legumbre (third (second op))))))
 
 ;;;************************************************************************************************************************
 ;; VALID-STATE (estado)
@@ -122,15 +119,12 @@
 (defun valid-state? (estado)
     "Predicado. Valida un estado según las restricciones generales del problema
     El estado tiene una estructura [(<Lobo0><Oveja0><Legumbre0>) (<Lobo1><Oveja1><Legumbre1>)]"
-    (let* ((orilla (flip (barge-shore estado)))
-            (lobo (first (nth orilla estado)))
-            (oveja (second (nth orilla estado)))
-            (legumbre (third (nth orilla estado))))
-        (and (or (> legumbre oveja) (zerop legumbre))
-             (or (> oveja lobo) (zerop oveja))
-        )
-    )
-)
+    (let* ((orilla (orilla-sin-granjero estado))
+      (lobo (first (nth orilla estado)))
+      (oveja (second (nth orilla estado)))
+      (legumbre (third (nth orilla estado))))
+      (and (or (> oveja lobo) (zerop oveja))
+           (or (> legumbre oveja) (zerop legumbre)))))
 
 ;;;************************************************************************************************************************
 ;; APPLY-OPERATOR (op, estado)
@@ -141,56 +135,42 @@
 (defun apply-operator (op estado)
     "Obtiene el descendiente de [estado] al aplicarle [op] SIN VALIDACIONES"
               ;;Asignación de los datos a los elementos
-     (let* ((orilla1 (first estado))
-              (orilla2 (second estado))
-              (lobo0 (first orilla1))
-              (oveja0 (second orilla1))
-              (legumbre0 (third orilla1))
-              (granjero0 (fourth orilla1))
-              (lobo1 (first orilla2))
-              (oveja1 (second orilla2))
-              (legumbre1 (third orilla2))
-              (granjero1 (fourth orilla2))
-              (orilla-barca (barge-shore estado))
+     (let* ((orilla_barca (barge-shore estado))
+              (lobo0 (first (first estado)))
+              (oveja0 (second (first estado)))
+              (legumbre0 (third (first estado)))
+              (granjero0 (fourth (first estado)))
+              (lobo1 (first (second estado)))
+              (oveja1 (second (second estado)))
+              (legumbre1 (third (second estado)))
+              (granjero1 (fourth (second estado))))
               ;;Etiqueta humana del operador
-              (operador (first op)))
-        (case operador
+        (case (first op)
            ;;Operador a aplicar (1 0 0)
           (:Pasa-Lobo 
             ;;Restar elementos de la orilla con la barca y sumarlos a la otra orilla
-            (if (= orilla-barca 0)
-              (list (list (- lobo0 1) oveja0 legumbre0 (flip granjero0)) (list (+ lobo1 1) oveja1 legumbre1 (flip granjero1)))
-              (list (list (+ lobo0 1) oveja0 legumbre0 (flip granjero0)) (list (- lobo1 1) oveja1 legumbre1 (flip granjero1)))
+            (if (= orilla_barca 0)
+              (list (list 0 oveja0 legumbre0 (flip granjero0)) (list 1 oveja1 legumbre1 (flip granjero1)))
+	            (list (list 1 oveja0 legumbre0 (flip granjero0)) (list 0 oveja1 legumbre1 (flip granjero1)))
             )
           )
           ;;Operador a aplicar (0 1 0)
           (:Pasa-Oveja
             ;;Restar elementos de la orilla con la barca y sumarlos a la otra orilla
-            (if (= orilla-barca 0)
-            (list (list lobo0 (- oveja0 1) legumbre0 (flip granjero0)) (list lobo1 (+ oveja1 1) legumbre1 (flip granjero1)))
-            (list (list lobo0 (+ oveja0 1) legumbre0 (flip granjero0)) (list lobo1 (- oveja1 1) legumbre1 (flip granjero1)))
-            )
+            (if (= orilla_barca 0)
+	            (list (list lobo0 0 legumbre0 (flip granjero0)) (list lobo1 1 legumbre1 (flip granjero1)))
+	            (list (list lobo0 1 legumbre0 (flip granjero0)) (list lobo1 0 legumbre1 (flip granjero1))))
           )
           ;;Operador a aplicar (0 0 1)
           (:Pasa-Legumbre
             ;;Restar elementos de la orilla con la barca y sumarlos a la otra orilla
-            (if (= orilla-barca 0)
-              (list (list lobo0 oveja0 (- legumbre0 1) (flip granjero0)) (list lobo1 oveja1  (+ legumbre1 1) (flip granjero1)))
-              (list (list lobo0 oveja0 (+ legumbre0 1) (flip granjero0)) (list lobo1 oveja1  (- legumbre1 1) (flip granjero1)))
-            )
-          )
+           (if (= orilla_barca 0)
+	            (list (list lobo0 oveja0 0 (flip granjero0)) (list lobo1 oveja1 1 (flip granjero1)))
+	            (list (list lobo0 oveja0 0 (flip granjero0)) (list lobo1 oveja1 1 (flip granjero1)))))
           ;;Operador a aplicar (0 0 0)
           (:Pasa-Granjero
-            ;;Restar elementos de la orilla con la barca y sumarlos a la otra orilla
-            (if (= orilla-barca 0)
-              (list (list lobo0 oveja0 legumbre0 (flip granjero0)) (list lobo1 oveja1 legumbre1 (flip granjero1)))
-              (list (list lobo0 oveja0 legumbre0 (flip granjero0)) (list lobo1 oveja1 legumbre1 (flip granjero1)))
-            )
-          )
-          (T "error")
-        )
-      )
-)
+            (list (list lobo0 oveja0 legumbre0 (flip granjero0)) (list lobo1 oveja1 legumbre1 (flip granjero1)))))))
+
 
 ;;;************************************************************************************************************************
 ;; EXPAND (estado)
@@ -202,17 +182,13 @@
           (nuevo-estado nil)
     )
     (dolist (op *ops* descendientes)
-      ;(print (second op))
       ;; primero se aplica el operador  y  después
       (setq nuevo-estado (apply-operator op estado))
-      ;(print nuevo-estado)
       ; se valida el resultado
       (when (and (valid-operator? op estado)
                   (valid-state? nuevo-estado)
             )
-            ;(print (valid-operator? op estado))
-            ;(print (valid-state? nuevo-estado))
-            (setq descendientes (cons (list nuevo-estado op) descendientes))
+        (setq descendientes (cons (list nuevo-estado op) descendientes))
       )
     )
   )
@@ -236,13 +212,11 @@
 (defun  filter-memories (lista-estados-y-ops) 
 "Filtra una lista de estados-y-operadores quitando aquellos elementos cuyo estado está en la memoria *memory*
      la lista de estados y operadores tiene estructura: [(<estado> <op>) (<estado> <op>) ... ]"
-     (cond ((null  lista-estados-y-ops)  Nil)
+     (cond ((null  lista-estados-y-ops)  nil)
           ; Si se recuerda el primer elemento de la lista, filtrarlo.
 	       ((remember-state? (first (first  lista-estados-y-ops)) *memory*)  
 		       (filter-memories  (rest  lista-estados-y-ops)))
-      (T  (cons  (first lista-estados-y-ops) 
-      ; De lo contrario, incluirlo en la respuesta
-      (filter-memories  (rest  lista-estados-y-ops))))
+      (T  (cons  (first lista-estados-y-ops) (filter-memories  (rest  lista-estados-y-ops))))
     ) 
 )  
 
@@ -258,30 +232,30 @@
 "Rastrea en *memory* todos los descendientes de [nodo] hasta llegar al estado inicial"
       ;Busca un nodo por su id, si lo encuentra regresa el nodo completo
      (labels ((locate-node  (id  lista)     
-		  (cond ((null  lista)  Nil)
+		  (cond ((null  lista)  nil)
 		        ((eql  id  (first (first  lista))) (first  lista))
 		        (T  (locate-node  id (rest  lista))))))
-	  (let ((current  (locate-node  (first  nodo)  *memory*)))
-	     (loop  while  (not (null  current))  do             
+	  (let ((current (locate-node  (first  nodo)  *memory*)))
+	     (loop while (not (null  current))  do             
       ;Agregar a la solución el nodo actual           
-		 (push  current  *solucion*)  
+		      (push current  *solucion*)  
      ; Y luego regresa a su antecesor
-		 (setq  current  (locate-node  (third  current) *memory*)))) 
+		      (setq current  (locate-node  (fourth current) *memory*)))) 
 	     *solucion*)
 ) 
 
-(defun display-solution (lista-nodos)
+(defun display-solution (solucion)
   "Despliega la solución en forma conveniente y numerando los pasos"
-    (format t "Solución con ~A pasos:~%~%" (1- (length lista-nodos)))
+    (format t "Solución con ~A pasos:~%~%" (1- (length solucion)))
     (let ((nodo nil))
-      (dotimes (i (length lista-nodos))
-        (setq nodo (nth i lista-nodos))
+      (dotimes (i (length solucion))
+        (setq nodo (nth i solucion))
         (if (= i 0)
             ;A partir de este estado inicial
           (format t "Inicio en: ~A~%"(second nodo))
           ;else
             ;Imprimir el número de paso, operador y estado
-          (format t "\(~2A\) aplicado ~20A se llega a ~A~%" i (fourth nodo) (second nodo))
+          (format t "\(~2A\) aplicando ~20A se llega a ~A~%" i (third nodo) (second nodo))
         )
       )
     )
@@ -299,7 +273,7 @@
 "Reinicia todas las variables globales para realizar una nueva búsqueda..."
      (setq  *open*  nil)
      (setq  *memory*  nil)
-     (setq  *id*  0)
+     (setq  *id*  -1)
      (setq  *current-ancestor*  nil)
      (setq  *solucion*  nil))
 
@@ -310,17 +284,16 @@
     (reset-all)
     (let ((nodo nil)
           (estado nil)
-          (sucesores '())
+          (sucesores nil)
           (operador nil)
           (meta-encontrada nil))
       (insert-to-open edo-inicial nil metodo)
-      (loop until (or meta-encontrada 
-                      (null *open*)) do
-        (setq nodo     (get-from-open)
-              estado   (second nodo)
-              operador (third nodo))
+      (loop until (or meta-encontrada (null *open*)) do
+        (setq nodo     (get-from-open))
+        (setq estado   (second nodo))
+        (setq operador (third nodo))
         (push nodo *memory*)
-        (cond ((equal edo-meta estado)
+        (cond ((equal estado edo-meta)
           (format t "Exito. Meta encontrada en ~A intentos ~%" (first nodo))
           (display-solution  (extract-solution  nodo))
           (setq meta-encontrada T))
@@ -330,5 +303,5 @@
           (loop for element in sucesores do
             (insert-to-open (first element) (second element) metodo)))))))
 
-(format t " Solución: ~S~%~% " (blind-search '((1 1 1 1) (0 0 0 0)) '((0 0 0 0) (1 1 1 1)) :depth-first))
-(format t "Solución: ~S~%~% " (blind-search '((1 1 1 1) (0 0 0 0)) '((0 0 0 0) (1 1 1 1)) :breath-first))
+(blind-search '((1 1 1 1) (0 0 0 0)) '((0 0 0 0) (1 1 1 1)) ':depth-first)
+(blind-search '((1 1 1 1) (0 0 0 0)) '((0 0 0 0) (1 1 1 1)) ':breath-first)
