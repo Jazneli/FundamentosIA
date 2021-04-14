@@ -110,9 +110,8 @@
     (and  (>=  lobo  (first (second op)))        
           (>=  oveja   (second (second op))))
           (>= legumbre (third(second op)))
-    )
   )
-)  
+)
 
 ;;;*******************************************************************************************************************************
 ;; VALID-STATE (estado)
@@ -122,7 +121,7 @@
 (defun valid-state? (estado)
     "Predicado. Valida un estado según las restricciones generales del problema
     El estado tiene una estructura [(<Lobo0><Oveja0><Legumbre0>) (<Lobo1><Oveja1><Legumbre1>)]"
-    (let * ((orilla (flip (barge-shore estado)))
+    (let* ((orilla (flip (barge-shore estado)))
             (lobo (first (nth orilla estado)))
             (oveja (second (nth orilla estado)))
             (legumbre (third (nth orilla estado))))
@@ -141,7 +140,7 @@
 (defun apply-operator (op estado)
     "Obtiene el descendiente de [estado] al aplicarle [op] SIN VALIDACIONES"
               ;;Asignación de los datos a los elementos
-     (let * ((orilla1 (first estado))
+     (let* ((orilla1 (first estado))
               (orilla2 (second estado))
               (lobo0 (first orilla1))
               (oveja0 (second orilla1))
@@ -183,8 +182,8 @@
           (:Pasa-Granjero
             ;;Restar elementos de la orilla con la barca y sumarlos a la otra orilla
             (if (= orilla-barca 0)
-              (list (list lobo oveja0 legumbre0 (flip granjero0)) list(lobo1 oveja1 legumbre1 (flip granjero1)))
-              (list (list lobo oveja0 legumbre0 (flip granjero0)) list(lobo1 oveja1 legumbre1 (flip granjero1)))
+              (list (list lobo0 oveja0 legumbre0 (flip granjero0)) (list lobo1 oveja1 legumbre1 (flip granjero1)))
+              (list (list lobo0 oveja0 legumbre0 (flip granjero0)) (ist lobo1 oveja1 legumbre1 (flip granjero1)))
             )
           )
           (T "error")
@@ -267,12 +266,13 @@
 		 (push  current  *solucion*)  
      ; Y luego regresa a su antecesor
 		 (setq  current  (locate-node  (third  current) *memory*)))) 
-	     *solucion*);) Revisar este parentesis
+	     *solucion*)
+) 
 
-(defun discplay-solution (lista-nodos)
+(defun display-solution (lista-nodos)
   "Despliega la solución en forma conveniente y numerando los pasos"
     (format t "Solución con ~A pasos:~%~%" (1- (length lista-nodos)))
-    (let ((nodo nil)
+    (let ((nodo nil))
       (dotimes (i (length lista-nodos))
         (setq nodo (nth i lista-nodos))
         (if (= i 0)
@@ -285,6 +285,7 @@
       )
     )
 )
+
 
 ;;;*******************************************************************************************************************************
 ;; RESET-ALL  y  BLIND-SEARCH
@@ -311,10 +312,10 @@
           (estado nil)
           (sucesores '())
           (operador nil)
-          (meta-encontrada nil)
-      )
+          (meta-encontrada nil))
       (insert-to-open edo-inicial nil metodo)
-      (loop until (or meta-encontrada (null *open)) do
+      (loop until (or meta-encontrada 
+                      (null *open*)) do
         (setq nodo     (get-from-open)
               estado   (second nodo)
               operador (third nodo))
@@ -325,11 +326,10 @@
           (setq *current-ancestor* (first nodo))
           (setq sucesores (expand estado))
           (setq sucesores (filter-memories sucesores))
-          (loop form element in sucesores do
-            (insert-to-open (first el (second element) metodo))
+          (loop for element in sucesores do
+            (insert-to-open (first element) (second element) metodo))
           )
         )
       )
-    )
-  )
+   )
 )
