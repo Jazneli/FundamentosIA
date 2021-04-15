@@ -257,6 +257,7 @@
           (format t "\(~2A\) aplicando ~20A se llega a ~A~%" i (third nodo) (second nodo))
         )
       )
+      (format t "~% Longitud de la solución: ~A operadores~%" (1- (length solucion)))
     )
 )
 
@@ -290,7 +291,9 @@
           ;Indicador de desempeño tiempo
           (tiempo1 (get-internal-run-time))
           (tiempo2 0)
-          (tiempoTotal 0))
+          (tiempoTotal 0)
+
+          (solucionT 0))
 
       (insert-to-open edo-inicial nil metodo)
       (loop until (or meta-encontrada (null *open*)) do
@@ -306,19 +309,17 @@
           (setq sucesores (expand estado))
           (setq sucesores (filter-memories sucesores))
           (loop for element in sucesores do
-            (insert-to-open (first element) (second element) metodo))))))
-            
-    ;;Calcula indicador de desempeño tiempo
+            (insert-to-open (first element) (second element) metodo)))))
+     ;Indicadores de desempeño
+     ;Calcula indicador de desempeño tiempo
     (setq tiempo2 (get-internal-run-time))
-    (setq tiempoTotal (/(- tiempo2 tiempo1) 1000))
-    (format t "Tiempo Total: ~S~%~%" tiempoTotal)
+    (setq tiempoTotal (/(- tiempo2 tiempo1) internal-time-units-per-second))
+    (format t " Tiempo para encontar la solución: ~6$~%~%" tiempoTotal)
+    )
 )
 
-(format t "Busqueda por el método: depth-first ~%")
+(format t "     Busqueda por el método: depth-first ~%~%")
 (blind-search '((1 1 1 1) (0 0 0 0)) '((0 0 0 0) (1 1 1 1)) ':depth-first)
-(format t "~% Indicadores de desempeño. ~%~%")
-(format t " Longitud de la colución: ~A ~%" (first nodo))
-(format t "Tiempo Total: ~S~%~%" tiempoTotal)
 
-(format t "Busqueda por el método: breath-first ~%s")
+(format t "~%     Busqueda por el método: breath-first ~%~%")
 (blind-search '((1 1 1 1) (0 0 0 0)) '((0 0 0 0) (1 1 1 1)) ':breath-first)
