@@ -45,7 +45,6 @@
 (defparameter *solucion* nil)
 
 ;;;************************************************************************************************************************
-
 ;; Create-node (estado op)
 ;;      estado: Un estado del problema a resolver
 ;;    operador: El operador cuta aplicación genero el estado
@@ -286,7 +285,13 @@
           (estado nil)
           (sucesores nil)
           (operador nil)
-          (meta-encontrada nil))
+          (meta-encontrada nil)
+          
+          ;Indicador de desempeño tiempo
+          (tiempo1 (get-internal-run-time))
+          (tiempo2 0)
+          (tiempoTotal 0))
+
       (insert-to-open edo-inicial nil metodo)
       (loop until (or meta-encontrada (null *open*)) do
         (setq nodo     (get-from-open))
@@ -301,7 +306,19 @@
           (setq sucesores (expand estado))
           (setq sucesores (filter-memories sucesores))
           (loop for element in sucesores do
-            (insert-to-open (first element) (second element) metodo)))))))
+            (insert-to-open (first element) (second element) metodo))))))
+            
+    ;;Calcula indicador de desempeño tiempo
+    (setq tiempo2 (get-internal-run-time))
+    (setq tiempoTotal (/(- tiempo2 tiempo1) 1000))
+    (format t "Tiempo Total: ~S~%~%" tiempoTotal)
+)
 
+(format t "Busqueda por el método: depth-first ~%")
 (blind-search '((1 1 1 1) (0 0 0 0)) '((0 0 0 0) (1 1 1 1)) ':depth-first)
+(format t "~% Indicadores de desempeño. ~%~%")
+(format t " Longitud de la colución: ~A ~%" (first nodo))
+(format t "Tiempo Total: ~S~%~%" tiempoTotal)
+
+(format t "Busqueda por el método: breath-first ~%s")
 (blind-search '((1 1 1 1) (0 0 0 0)) '((0 0 0 0) (1 1 1 1)) ':breath-first)
