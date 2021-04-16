@@ -385,10 +385,7 @@
 			     (setq  sucesores  (filter-memories  sucesores))
 			      (loop for  element  in  sucesores  do
 				    (insert-to-open  (first element)  (second element)  metodo)))))
-
-      (setq tiempo2 (get-internal-run-time))
-      (setq tiempoTotal (/ (- tiempo2 tiempo1) 1000))
-      (format t "El tiempo total es: ~6$~%" tiempoTotal)))
+))
 
 ;;;************************************************************************************************************************
 ;;MOSTRAR INDICADORES
@@ -412,5 +409,5 @@
 (setq *tiempo1* (get-internal-run-time))
 (blind-search '((1 1 1 0 2 2 2 1) (2 2 2 0 1 1 1 0)) '((2 2 2 0 1 1 1 0) (1 1 1 0 2 2 2 1)) :depth-first)
 (setq *tiempo2* (get-internal-run-time))
-(setq *tiempo_requerido* (/ (- *tiempo2* *tiempo1*) (get-internal-real-time)))
+(setq *tiempoTotal* (/ (- *tiempo2* *tiempo1*) (get-internal-real-time)))
 (mostrar-indicadores)
