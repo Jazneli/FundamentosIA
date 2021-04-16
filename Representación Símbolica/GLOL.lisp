@@ -268,7 +268,6 @@
           (format t "\(~2A\) aplicando ~20A se llega a ~A~%" i (third nodo) (second nodo))
         )
       )
-      (format t "~% Longitud de la solución: ~A operadores~%" (1- (length solucion)))
     )
 )
 
@@ -298,14 +297,7 @@
           (sucesores nil)
           (operador nil)
           (meta-encontrada nil)
-          
-          ;Indicador de desempeño
-          (setq *nodos_creados* 0)
-          (setq *nodos_expandidos* 0)
-          (setq *longitud_maxima_frontera* 0)
-          (setq *tiempo1* 0)
-          (setq *tiempo2* 0)
-          (setq *tiempoTotal* 0))
+          )
 
       (insert-to-open edo-inicial nil metodo)
       (loop until (or meta-encontrada (null *open*)) do
