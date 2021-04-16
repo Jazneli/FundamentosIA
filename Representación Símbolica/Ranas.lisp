@@ -54,6 +54,14 @@
 ;; Lista donde se almacenará la solución recuperada de la memoria
 (defparameter *solucion* nil)
 
+;;Indicadores de desempeño
+(defparameter *nodos_creados* 0)
+(defparameter *nodos_expandidos* 0)
+(defparameter *longitud_maxima_frontera* 0)
+(defparameter *tiempo1* 0)
+(defparameter *tiempo2* 0)
+(defparameter *tiempoTotal* 0)
+
 ;;;************************************************************************************************************************
 ;; Create-node (estado op)
 ;;      estado: Un estado del problema a resolver
@@ -63,6 +71,7 @@
   "Construye y regresa un nuevo nodo de búsqueda que contiene al estado y operador recibidos como parámetro "
 	  ;;Incremento para que lo primero es procesarse sea la respuesta
       (incf  *id*) 
+	  (incf *nodos_creados*)
 	  ;;Los nodos procesados son descendientes de *current-ancestor*
       (list  *id*  estado  *current-ancestor*  (first op)) ) 
 
@@ -76,6 +85,7 @@
 (defun insert-to-open (estado  op  metodo) 
 "Permite insertar nodos de la frontera de busqueda *open* de forma apta para buscar a lo profundo y a lo ancho"
      (let ((nodo  (create-node  estado  op)))
+	 	 (incf *longitud_maxima_frontera*)
          (cond ((eql  metodo :depth-first)
 	                  (push  nodo  *open*))
 	           ((eql  metodo :breath-first)
@@ -267,6 +277,7 @@
 "Obtiene todos los descendientes válidos de un estado, aplicando todos los operadores en *ops* en ese mismo órden"
      (let* ((descendientes  nil)
 	     (nuevo-estado  nil))
+		 (incf *nodos_expandidos*)
            (dolist  (op  *Ops*  descendientes) 
 	         (setq  nuevo-estado  (apply-operator  op estado))
 		 (when (and (valid-operator?  op  estado) 
@@ -377,11 +388,29 @@
 
       (setq tiempo2 (get-internal-run-time))
       (setq tiempoTotal (/ (- tiempo2 tiempo1) 1000))
-      (format t "El tiempo total es: ~6$~%" tiempoTotal)
+      (format t "El tiempo total es: ~6$~%" tiempoTotal)))
 
-      )  )
+;;;************************************************************************************************************************
+;;MOSTRAR INDICADORES
+;;;************************************************************************************************************************
+(defun mostrar-indicadores ()
+  (format t "~%Nodos creados: ~A~%" *nodos_creados*)
+  (format t "Nodos expandidos: ~A~%" *nodos_expandidos*)
+  (format t "Longitud maxima de la frontera de busqueda: ~A~%" *longitud_maxima_frontera*)
+  (format t "Longitud de la solucion: ~A operadores~%" (1- (length *solucion*)))
+  (format t "Tiempo para encontrar la solucion: ~6$ segundos~%" *tiempoTotal*))
+
+;;;************************************************************************************************************************
 (format t "     Busqueda por el método: depth-first ~%~%")			          
+(setq *tiempo1* (get-internal-run-time))
 (blind-search '((1 1 1 0 2 2 2 1) (2 2 2 0 1 1 1 0)) '((2 2 2 0 1 1 1 0) (1 1 1 0 2 2 2 1)) :breath-first)
+(setq *tiempo2* (get-internal-run-time))
+(setq *tiempoTotal* (/ (- *tiempo2* *tiempo1*) (get-internal-real-time)))
+(mostrar-indicadores)
 
 (format t "~%     Busqueda por el método: breath-first ~%~%")
+(setq *tiempo1* (get-internal-run-time))
 (blind-search '((1 1 1 0 2 2 2 1) (2 2 2 0 1 1 1 0)) '((2 2 2 0 1 1 1 0) (1 1 1 0 2 2 2 1)) :depth-first)
+(setq *tiempo2* (get-internal-run-time))
+(setq *tiempo_requerido* (/ (- *tiempo2* *tiempo1*) (get-internal-real-time)))
+(mostrar-indicadores)

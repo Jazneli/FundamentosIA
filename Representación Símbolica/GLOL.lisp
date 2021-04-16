@@ -44,6 +44,13 @@
 ;; Lista donde se almacenará la solución recuperada de la memoria
 (defparameter *solucion* nil)
 
+;;Indicadores de desempeño
+(defparameter *nodos_creados* 0)
+(defparameter *nodos_expandidos* 0)
+(defparameter *longitud_maxima_frontera* 0)
+(defparameter *tiempo1* 0)
+(defparameter *tiempo2* 0)
+(defparameter *tiempoTotal* 0)
 ;;;************************************************************************************************************************
 ;; Create-node (estado op)
 ;;      estado: Un estado del problema a resolver
@@ -53,6 +60,8 @@
     "Construye y regresa un nuevo nodo de búsqueda que contiene al estado y operador recibidos como parámetro"
     ;;Incremento para que lo primero es procesarse sea la respuesta
     (incf *id*)
+    ;;Incremento nodos creados
+    (incf *nodos_creados*)
     ;;Los nodos procesados son descendientes de *current-ancestor*
     (list *id* estado (first op) *current-ancestor* )
 )
@@ -67,6 +76,7 @@
 (defun insert-to-open (estado  op  metodo) 
 "Permite insertar nodos de la frontera de busqueda *open* de forma apta para buscar a lo profundo y a lo ancho"
      (let ((nodo  (create-node  estado  op)))
+         (incf *longitud_maxima_frontera*)
          (cond ((eql  metodo  :depth-first)
 	                  (push  nodo  *open*))
 	           ((eql  metodo  :breath-first)
@@ -180,6 +190,7 @@
   (let ((descendientes nil)
           (nuevo-estado nil)
     )
+    (incf *nodos_expandidos*)
     (dolist (op *ops* descendientes)
       ;; primero se aplica el operador  y  después
       (setq nuevo-estado (apply-operator op estado))
@@ -288,12 +299,13 @@
           (operador nil)
           (meta-encontrada nil)
           
-          ;Indicador de desempeño tiempo
-          (tiempo1 (get-internal-run-time))
-          (tiempo2 0)
-          (tiempoTotal 0)
-
-          (solucionT 0))
+          ;Indicador de desempeño
+          (setq *nodos_creados* 0)
+          (setq *nodos_expandidos* 0)
+          (setq *longitud_maxima_frontera* 0)
+          (setq *tiempo1* 0)
+          (setq *tiempo2* 0)
+          (setq *tiempoTotal* 0))
 
       (insert-to-open edo-inicial nil metodo)
       (loop until (or meta-encontrada (null *open*)) do
@@ -310,16 +322,30 @@
           (setq sucesores (filter-memories sucesores))
           (loop for element in sucesores do
             (insert-to-open (first element) (second element) metodo)))))
-     ;Indicadores de desempeño
-     ;Calcula indicador de desempeño tiempo
-    (setq tiempo2 (get-internal-run-time))
-    (setq tiempoTotal (/(- tiempo2 tiempo1) internal-time-units-per-second))
-    (format t " Tiempo para encontar la solución: ~6$~%~%" tiempoTotal)
     )
 )
 
+;;;************************************************************************************************************************
+;;MOSTRAR INDICADORES
+;;;************************************************************************************************************************
+(defun mostrar-indicadores ()
+  (format t "~%Nodos creados: ~A~%" *nodos_creados*)
+  (format t "Nodos expandidos: ~A~%" *nodos_expandidos*)
+  (format t "Longitud maxima de la frontera de busqueda: ~A~%" *longitud_maxima_frontera*)
+  (format t "Longitud de la solucion: ~A operadores~%" (1- (length *solucion*)))
+  (format t "Tiempo para encontrar la solucion: ~6$ segundos~%" *tiempoTotal*))
+
+;;;************************************************************************************************************************
 (format t "     Busqueda por el método: depth-first ~%~%")
+(setq *tiempo1* (get-internal-run-time))
 (blind-search '((1 1 1 1) (0 0 0 0)) '((0 0 0 0) (1 1 1 1)) ':depth-first)
+(setq *tiempo2* (get-internal-run-time))
+(setq *tiempoTotal* (/ (- *tiempo2* *tiempo1*) (get-internal-real-time)))
+(mostrar-indicadores)
 
 (format t "~%     Busqueda por el método: breath-first ~%~%")
+(setq *tiempo1* (get-internal-run-time))
 (blind-search '((1 1 1 1) (0 0 0 0)) '((0 0 0 0) (1 1 1 1)) ':breath-first)
+(setq *tiempo2* (get-internal-run-time))
+(setq *tiempoTotal* (/ (- *tiempo2* *tiempo1*) (get-internal-real-time)))
+(mostrar-indicadores)
